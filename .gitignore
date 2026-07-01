@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Ecommerce.PaymentService/Ecommerce.PaymentService.API/bin/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.API/obj
+/Ecommerce.PaymentService/.vs
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Application/bin/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Application/obj/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Application/obj
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Domain/bin/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Domain/obj
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Infrastructure/bin/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Infrastructure/obj/Debug/net10.0
+/Ecommerce.PaymentService/Ecommerce.PaymentService.Infrastructure/obj
+/.vs

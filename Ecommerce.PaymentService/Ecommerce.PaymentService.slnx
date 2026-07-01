@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/Application/">
+    <Project Path="Ecommerce.PaymentService.Application/Ecommerce.PaymentService.Application.csproj" Id="e0f8ba94-c8c2-48e6-a1d2-bcbbf0a1c431" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="Ecommerce.PaymentService.Domain/Ecommerce.PaymentService.Domain.csproj" Id="3f7374f8-38a3-4c5f-a2a6-6e1dc93af03c" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="Ecommerce.PaymentService.Infrastructure/Ecommerce.PaymentService.Infrastructure.csproj" Id="4fd40df8-30f2-43d8-8dc5-b3a37e7efe97" />
+  </Folder>
+  <Folder Name="/Tests/" />
+  <Project Path="Ecommerce.PaymentService.API/Ecommerce.PaymentService.API.csproj" Id="747b4199-79b4-4883-99cb-c08b0d40f130" />
+</Solution>
