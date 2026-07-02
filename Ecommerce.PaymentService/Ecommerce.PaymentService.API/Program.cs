@@ -1,9 +1,14 @@
 using AutoMapper;
 using Azure.Messaging.ServiceBus;
+using Ecommerce.PaymentService.Application.Interface;
 using Ecommerce.PaymentService.Application.Interface.IRepository;
 using Ecommerce.PaymentService.Application.Interface.IServices;
+using Ecommerce.PaymentService.Application.Mapping;
 using Ecommerce.PaymentService.Application.Services;
 using Ecommerce.PaymentService.Infrastructure;
+using Ecommerce.PaymentService.Infrastructure.BusService;
+using Ecommerce.PaymentService.Infrastructure.Foctory;
+using Ecommerce.PaymentService.Infrastructure.Payment;
 using Ecommerce.PaymentService.Infrastructure.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,25 +25,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString);
 });
 
-
-builder.Services.AddSingleton(x =>
-{
-    var configuration = x.GetRequiredService<IConfiguration>();
-
-    return new ServiceBusClient(
-        configuration["AzureServiceBus:ConnectionString"],
-        new ServiceBusClientOptions
-        {
-            RetryOptions =
-            {
-                MaxRetries = 5,
-                Delay = TimeSpan.FromSeconds(2),
-                Mode = ServiceBusRetryMode.Exponential
-            }
-        });
-});
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(Ecommerce.PaymentService.Application.Mapping.MappingProfile));
+builder.Services.AddAutoMapper(opt => opt.AddProfile<MappingProfile>());
 
 // Repositories and services
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
@@ -47,10 +35,16 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 // Http client factory for payment gateways
 builder.Services.AddHttpClient();
 
-// Register payment gateways
-builder.Services.AddScoped<Ecommerce.PaymentService.Application.Interface.IPaymentGateway, Ecommerce.PaymentService.Infrastructure.Payment.StripePaymentGateway>();
-builder.Services.AddScoped<Ecommerce.PaymentService.Application.Interface.IPaymentGateway, Ecommerce.PaymentService.Infrastructure.Payment.PayPalPaymentGateway>();
-builder.Services.AddHostedService<OrderConsumer>();
+// Register concrete payment gateway implementations so the factory can resolve them by type
+builder.Services.AddScoped<StripePaymentGateway>();
+builder.Services.AddScoped<PayPalPaymentGateway>();
+
+// Register the factory and producer implementations
+builder.Services.AddScoped<IPaymentGatewayFactory, PaymentGatewayFactory>();
+
+
+// Register Kafka consumer as hosted service (it depends on IPaymentService)
+builder.Services.AddHostedService<KafkaConsumer>();
 
 // If AppDbContext is not EF Core DbContext, you may need to register it differently.
 

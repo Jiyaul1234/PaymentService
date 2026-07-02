@@ -5,6 +5,7 @@ using Ecommerce.PaymentService.Application.Interface.IRepository;
 using Ecommerce.PaymentService.Application.Interface.IServices;
 using Ecommerce.PaymentService.Application.Models;
 using Ecommerce.PaymentService.Domain.Model;
+using Microsoft.Extensions.Configuration;
 
 namespace Ecommerce.PaymentService.Application.Services
 {
@@ -13,15 +14,17 @@ namespace Ecommerce.PaymentService.Application.Services
         private readonly IPaymentRepository _repository;
         private readonly AutoMapper.IMapper _mapper;
         private IPaymentGatewayFactory _paymentGatewayFactory;
-        private IPaymentProducerService _paymentProducerService;
-
-
-        public PaymentService(IPaymentRepository repository, AutoMapper.IMapper mapper,IPaymentGatewayFactory paymentGatewayFactory,IPaymentProducerService paymentProducerService)
+        private readonly IKafkaProducer _kafkaProducer;
+        private readonly IConfiguration _configuration;
+        
+        public PaymentService(IPaymentRepository repository, AutoMapper.IMapper mapper,
+            IPaymentGatewayFactory paymentGatewayFactory,IKafkaProducer kafkaProducer,IConfiguration configuration)
         {
             _repository = repository;
             _mapper = mapper;
             _paymentGatewayFactory = paymentGatewayFactory;
-            _paymentProducerService= paymentProducerService;   
+            _kafkaProducer = kafkaProducer;
+            _configuration = configuration;
         }
 
         public async Task CreatePaymentAsync(PaymentDto paymentDto)
@@ -33,14 +36,14 @@ namespace Ecommerce.PaymentService.Application.Services
             paymentDto.PaymentId = paymentId;
             if (paymentId != null) 
             {
-              paymentResult =  await  Pay(paymentDto);
+                paymentResult =  await  Pay(paymentDto);
                 paymentDto.TransactionId = paymentResult?.TransactionId;
                 paymentDto.PaymentStatus = paymentResult.IsSuccess ? "Succeeded" : "Failed";
                 paymentDto.UpdatedDate = DateTime.UtcNow;
                 paymentDto.PaymentGatewayError = paymentResult.ErrorMessage;
             }
             await UpdatePaymentAsync(paymentDto);
-            await PublishPaymentDetails(paymentDto);
+             await PublishPaymentDetails(paymentDto);
         }
         public async Task DeletePaymentAsync(int id)
         {
@@ -84,6 +87,7 @@ namespace Ecommerce.PaymentService.Application.Services
 
         private async Task PublishPaymentDetails(PaymentDto paymentDto) 
         {
+            string topicName = _configuration["Kafka:PamentTopic"];
             PaymentCreatedEvent paymentCreatedEvent = new PaymentCreatedEvent()
             {
                 MessageId= Guid.NewGuid().ToString(),
@@ -92,8 +96,8 @@ namespace Ecommerce.PaymentService.Application.Services
                 Status=paymentDto.PaymentStatus
             };
 
-          await  _paymentProducerService.PublishPaymentStatus(paymentCreatedEvent);
-            
+            await  _kafkaProducer.PublishAsync<PaymentCreatedEvent>(topicName,paymentCreatedEvent); 
+
         }
     }
 }
